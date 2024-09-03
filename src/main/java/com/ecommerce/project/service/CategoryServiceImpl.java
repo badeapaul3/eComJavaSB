@@ -1,5 +1,7 @@
 package com.ecommerce.project.service;
 
+import com.ecommerce.project.exceptions.APIException;
+import com.ecommerce.project.exceptions.ResourceNotFoundException;
 import com.ecommerce.project.model.Category;
 import com.ecommerce.project.repositories.CategoryRepository;
 
@@ -26,12 +28,16 @@ public class CategoryServiceImpl implements CategoryService{
     private CategoryRepository categoryRepository;
     @Override
     public List<Category> getAllCategories() {
+        if (categoryRepository.findAll().isEmpty())
+            throw new APIException("No categories available!");
         return categoryRepository.findAll();
     }
 
     @Override
     public void createCategory(Category category) {
-
+        Category savedCategory = categoryRepository.findByCategoryName(category.getCategoryName());
+        if(savedCategory != null)
+            throw new APIException("Category with the name "+ category.getCategoryName() + " already exists!!!");
         category.setCategoryId(nextId++);
         categoryRepository.save(category);
     }
@@ -39,7 +45,7 @@ public class CategoryServiceImpl implements CategoryService{
     @Override
     public String deleteCategory(Long categoryId) {
         Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource not found"));
+            .orElseThrow(() -> new ResourceNotFoundException("Category","categoryId", categoryId));
         categoryRepository.delete(category);
         return "Deleted category with id " + categoryId + " : " + category.getCategoryName();
     }
@@ -48,7 +54,7 @@ public class CategoryServiceImpl implements CategoryService{
     public Category updateCategory(Category category, Long categoryId) {
         Category savedCategory = categoryRepository
                 .findById(categoryId)
-                .orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "Resource not found"));
+                .orElseThrow(()-> new ResourceNotFoundException("Category","categoryId", categoryId));
         category.setCategoryId(categoryId);
         savedCategory = categoryRepository.save(category);
         return savedCategory;

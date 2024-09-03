@@ -8,4 +8,6 @@ import org.springframework.data.repository.CrudRepository;
  * @author hatzp
  **/
 public interface CategoryRepository extends JpaRepository<Category,Long> {
+    //naming convention for JPA
+    Category findByCategoryName(String categoryName);
 }
